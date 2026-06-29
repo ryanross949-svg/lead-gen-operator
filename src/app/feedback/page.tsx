@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+export const dynamic = 'force-dynamic';
+
 export default async function FeedbackLogPage() {
   const feedbacks = await prisma.feedback.findMany({
     include: { interaction: true },

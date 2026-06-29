@@ -4,6 +4,8 @@ import { KanbanSquare, Zap, Link2, Brain, AlertTriangle } from "lucide-react";
 import { NewDealSheet } from "@/components/new-deal-sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = 'force-dynamic';
+
 // Simplified Pipeline Stages
 const pipelineColumns = [
   { id: "target", title: "Target Sellers", color: "bg-slate-200 dark:bg-slate-800", sellerStatus: "PROSPECTED" },
