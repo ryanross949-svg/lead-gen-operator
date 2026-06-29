@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import { prisma } from "@/lib/db";
-import { KanbanSquare, Zap, Link2, Brain, AlertTriangle } from "lucide-react";
+import { KanbanSquare, Zap, Link2, Brain, AlertTriangle, Info } from "lucide-react";
 import { NewDealSheet } from "@/components/new-deal-sheet";
 import { EntityCardMenu } from "@/components/entity-card-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,6 @@ const pipelineColumns = [
   { id: "engaged", title: "Engaged Sellers", color: "bg-blue-200 dark:bg-blue-900/50", sellerStatus: "ACTIVE" },
   { id: "contacted", title: "Buyers in Convo", color: "bg-purple-200 dark:bg-purple-900/50", buyerStatus: "CONTACTED" },
   { id: "qualified", title: "Qualified Buyers", color: "bg-indigo-200 dark:bg-indigo-900/50", buyerStatus: "QUALIFIED" },
-  { id: "closed", title: "Closed Deals", color: "bg-green-200 dark:bg-green-900/50", dealStatus: "CLOSED" },
 ];
 
 export default async function Dashboard() {
@@ -41,7 +40,22 @@ export default async function Dashboard() {
         <NewDealSheet />
       </div>
 
-      {/* 1. ACTION QUEUE */}
+      {/* MOVEMENT RULES */}
+      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-blue-600 dark:text-blue-400">
+            <Info className="h-5 w-5" /> When to Move Cards
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+          <div><span className="font-bold text-foreground">Target → Engaged:</span> Seller replies "Yes, I can take orders".</div>
+          <div><span className="font-bold text-foreground">In Convo → Qualified:</span> Buyer confirms they have the budget.</div>
+          <div><span className="font-bold text-foreground">→ Unresponsive:</span> Followed up twice, no reply.</div>
+          <div><span className="font-bold text-foreground">→ Rejected:</span> Buyer says "just looking" or ghosts.</div>
+        </CardContent>
+      </Card>
+
+      {/* ACTION QUEUE */}
       <Card className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg text-red-600 dark:text-red-400">
@@ -49,7 +63,6 @@ export default async function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Seller Action */}
           <div className="p-3 rounded-md bg-background border">
             <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Seller Follow-ups</h4>
             {sellerActions.length > 0 ? (
@@ -61,7 +74,6 @@ export default async function Dashboard() {
             ) : <p className="text-sm text-muted-foreground">No actions.</p>}
           </div>
 
-          {/* Buyer Action */}
           <div className="p-3 rounded-md bg-background border">
             <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Buyer Questions</h4>
             {buyerActions.length > 0 ? (
@@ -73,7 +85,6 @@ export default async function Dashboard() {
             ) : <p className="text-sm text-muted-foreground">No actions.</p>}
           </div>
 
-          {/* Connect Action */}
           <div className="p-3 rounded-md bg-background border">
             <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Connections</h4>
             {readyToConnect ? (
@@ -85,7 +96,7 @@ export default async function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* 2. PIPELINE & 5. CONNECTION PANEL */}
+      {/* PIPELINE & CONNECTION PANEL */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
         <div className="flex gap-4 overflow-x-auto pb-4">
           {pipelineColumns.map((col) => {
@@ -137,9 +148,7 @@ export default async function Dashboard() {
           })}
         </div>
 
-        {/* RIGHT SIDE: Connection & Intel */}
         <div className="flex flex-col gap-4">
-          {/* Connection Panel */}
           <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm"><Link2 className="h-4 w-4" /> Ready to Connect</CardTitle>
@@ -157,7 +166,6 @@ export default async function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Intelligence Snapshot */}
           <Card className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm"><Brain className="h-4 w-4" /> Intel Snapshot</CardTitle>

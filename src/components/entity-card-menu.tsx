@@ -1,5 +1,6 @@
 "use client"
 
+import { useTransition } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Trash, ArrowRight } from "lucide-react"
+import { MoreHorizontal, Trash, ArrowRight, Loader2 } from "lucide-react"
 import { updateSellerStatus, deleteSeller, updateBuyerStatus, deleteBuyer } from "@/actions/deal"
 
 const sellerStages = [
@@ -24,34 +25,39 @@ const buyerStages = [
 ]
 
 export function EntityCardMenu({ id, type }: { id: string, type: "seller" | "buyer" }) {
+  const [isPending, startTransition] = useTransition()
   const stages = type === "seller" ? sellerStages : buyerStages
 
   const handleMove = (status: string) => {
-    if (type === "seller") updateSellerStatus(id, status)
-    if (type === "buyer") updateBuyerStatus(id, status)
+    startTransition(() => {
+      if (type === "seller") updateSellerStatus(id, status)
+      if (type === "buyer") updateBuyerStatus(id, status)
+    })
   }
 
   const handleDelete = () => {
-    if (type === "seller") deleteSeller(id)
-    if (type === "buyer") deleteBuyer(id)
+    startTransition(() => {
+      if (type === "seller") deleteSeller(id)
+      if (type === "buyer") deleteBuyer(id)
+    })
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="absolute top-2 right-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted">
-        <MoreHorizontal className="h-4 w-4" />
+      <DropdownMenuTrigger className="absolute top-2 right-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted z-10">
+        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Move to...</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {stages.map((stage) => (
-          <DropdownMenuItem key={stage.value} onClick={() => handleMove(stage.value)}>
+          <DropdownMenuItem key={stage.value} onClick={() => handleMove(stage.value)} disabled={isPending}>
             <ArrowRight className="h-4 w-4 mr-2" />
             {stage.label}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30">
+        <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30" disabled={isPending}>
           <Trash className="h-4 w-4 mr-2" />
           Delete
         </DropdownMenuItem>
