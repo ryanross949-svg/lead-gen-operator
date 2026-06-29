@@ -38,7 +38,7 @@ export function EntityCardMenu({ id, type }: { id: string, type: "seller" | "buy
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="absolute top-2 right-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+      <DropdownMenuTrigger className="absolute top-2 right-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted">
         <MoreHorizontal className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
