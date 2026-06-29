@@ -1,65 +1,184 @@
-import Image from "next/image";
+// src/app/page.tsx
+import { prisma } from "@/lib/db";
+import { KanbanSquare, Zap, Link2, Brain, AlertTriangle } from "lucide-react";
+import { NewDealSheet } from "@/components/new-deal-sheet";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function Home() {
+// Simplified Pipeline Stages
+const pipelineColumns = [
+  { id: "target", title: "Target Sellers", color: "bg-slate-200 dark:bg-slate-800", sellerStatus: "PROSPECTED" },
+  { id: "engaged", title: "Engaged Sellers", color: "bg-blue-200 dark:bg-blue-900/50", sellerStatus: "ACTIVE" },
+  { id: "contacted", title: "Buyers in Convo", color: "bg-purple-200 dark:bg-purple-900/50", buyerStatus: "CONTACTED" },
+  { id: "qualified", title: "Qualified Buyers", color: "bg-indigo-200 dark:bg-indigo-900/50", buyerStatus: "QUALIFIED" },
+  { id: "closed", title: "Closed Deals", color: "bg-green-200 dark:bg-green-900/50", dealStatus: "CLOSED" },
+];
+
+export default async function Dashboard() {
+  const sellers = await prisma.seller.findMany();
+  const buyers = await prisma.buyer.findMany();
+  const feedbacks = await prisma.feedback.findMany({ orderBy: { createdAt: "desc" }, take: 5 });
+
+  // --- ACTION QUEUE LOGIC ---
+  // 1. Sellers who are prospected but haven't been marked as having a real product yet (needs outreach/follow up)
+  const sellerActions = sellers.filter(s => s.status === "PROSPECTED" && !s.hasRealProduct);
+  // 2. Buyers who have intent but no budget (needs 1 more question)
+  const buyerActions = buyers.filter(b => b.hasIntent && !b.hasBudget);
+  // 3. Ready to connect (Buyer qualified + Seller active)
+  const readyBuyers = buyers.filter(b => b.status === "QUALIFIED");
+  const readySellers = sellers.filter(s => s.status === "ACTIVE");
+  const readyToConnect = readyBuyers.length > 0 && readySellers.length > 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex flex-col gap-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold flex items-center gap-2">
+            <KanbanSquare className="h-6 w-6" />
+            Operator Cockpit
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm text-muted-foreground mt-1">
+            Action-driven system. Execute without thinking.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <NewDealSheet />
+      </div>
+
+      {/* 1. ACTION QUEUE */}
+      <Card className="bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg text-red-600 dark:text-red-400">
+            <Zap className="h-5 w-5" /> Action Queue (Do Now)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Seller Action */}
+          <div className="p-3 rounded-md bg-background border">
+            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Seller Follow-ups</h4>
+            {sellerActions.length > 0 ? (
+              sellerActions.map(s => (
+                <div key={s.id} className="text-sm mb-1">
+                  → Follow up with <span className="font-semibold">{s.name}</span>
+                </div>
+              ))
+            ) : <p className="text-sm text-muted-foreground">No actions.</p>}
+          </div>
+
+          {/* Buyer Action */}
+          <div className="p-3 rounded-md bg-background border">
+            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Buyer Questions</h4>
+            {buyerActions.length > 0 ? (
+              buyerActions.map(b => (
+                <div key={b.id} className="text-sm mb-1">
+                  → Ask <span className="font-semibold">{b.name}</span> for budget
+                </div>
+              ))
+            ) : <p className="text-sm text-muted-foreground">No actions.</p>}
+          </div>
+
+          {/* Connect Action */}
+          <div className="p-3 rounded-md bg-background border">
+            <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Connections</h4>
+            {readyToConnect ? (
+              <div className="text-sm mb-1 font-semibold text-green-600">
+                → Connect {readyBuyers[0].name} with {readySellers[0].name}
+              </div>
+            ) : <p className="text-sm text-muted-foreground">No connections ready.</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 2. PIPELINE & 5. CONNECTION PANEL */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {pipelineColumns.map((col) => {
+            let cards: React.ReactNode[] = [];
+
+            if (col.sellerStatus) {
+              cards = sellers.filter(s => s.status === col.sellerStatus).map(s => (
+                <div key={s.id} className="p-3 rounded-md bg-background border shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <p className="font-medium text-sm">{s.name}</p>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${s.qualification === 'PASS' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{s.qualification}</span>
+                  </div>
+                  {s.niche && <p className="text-xs text-muted-foreground mt-1">Product: {s.niche}</p>}
+                  <div className="mt-2 pt-2 border-t text-xs font-medium text-blue-600">
+                    Next: {s.status === 'PROSPECTED' ? 'Outreach / Find Buyer' : 'Set Price / Connect'}
+                  </div>
+                </div>
+              ));
+            } else if (col.buyerStatus) {
+              cards = buyers.filter(b => b.status === col.buyerStatus).map(b => (
+                <div key={b.id} className="p-3 rounded-md bg-background border shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <p className="font-medium text-sm">{b.name}</p>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${b.qualification === 'PASS' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{b.qualification}</span>
+                  </div>
+                  {b.niche && <p className="text-xs text-muted-foreground mt-1">Wants: {b.niche}</p>}
+                  <div className="mt-2 pt-2 border-t text-xs font-medium text-blue-600">
+                    Next: {b.status === 'CONTACTED' ? 'Qualify Intent/Budget' : 'Find Seller / Connect'}
+                  </div>
+                </div>
+              ));
+            }
+
+            return (
+              <div key={col.id} className="flex flex-col w-72 shrink-0 rounded-lg border bg-card text-card-foreground">
+                <div className={`flex items-center justify-between p-3 border-b rounded-t-lg ${col.color}`}>
+                  <h3 className="text-sm font-semibold text-foreground">{col.title}</h3>
+                  <span className="text-xs bg-background/50 px-2 py-0.5 rounded-full text-foreground/70">{cards.length}</span>
+                </div>
+                <div className="p-3 flex flex-col gap-3 flex-1 min-h-[200px] bg-muted/30">
+                  {cards.length > 0 ? cards : (
+                    <div className="h-20 border border-dashed rounded-md flex items-center justify-center text-xs text-muted-foreground/50">Empty</div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
-      </main>
+
+        {/* RIGHT SIDE: Connection & Intel */}
+        <div className="flex flex-col gap-4">
+          {/* Connection Panel */}
+          <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm"><Link2 className="h-4 w-4" /> Ready to Connect</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+              {readyToConnect ? (
+                <>
+                  <div className="p-2 rounded bg-background border"><span className="font-bold">Buyer:</span> {readyBuyers[0].name} (✅)</div>
+                  <div className="p-2 rounded bg-background border"><span className="font-bold">Seller:</span> {readySellers[0].name} (✅)</div>
+                  <button className="w-full mt-2 bg-green-600 text-white text-sm font-medium py-2 rounded hover:bg-green-700">Connect Now</button>
+                </>
+              ) : (
+                <p className="text-muted-foreground">No qualified matches yet.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Intelligence Snapshot */}
+          <Card className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm"><Brain className="h-4 w-4" /> Intel Snapshot</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-3">
+              {feedbacks.length > 0 ? (
+                feedbacks.map(f => (
+                  <div key={f.id} className="border-b pb-2">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                      <AlertTriangle className="h-3 w-3" /> {f.coreIssue || "Issue"}
+                    </div>
+                    <p className="text-xs font-medium">{f.ruleUpdate}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground">No feedback logged yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

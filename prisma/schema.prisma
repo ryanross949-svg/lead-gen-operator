@@ -1,0 +1,118 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Seller Model
+model Seller {
+  id           String         @id @default(cuid())
+  name         String
+  contactInfo  String?        // TikTok Handle
+  niche        String?        // Product
+  status       String         @default("PROSPECTED") // PROSPECTED, ACTIVE, UNRESPONSIVE
+  
+  // Qualification & Tags
+  hasRealProduct    Boolean    @default(false)
+  isResponsive      Boolean    @default(false)
+  isCooperative     Boolean    @default(false)
+  paymentWillingness Boolean   @default(false)
+  qualification     String     @default("RISKY") // PASS, RISKY, FAIL, DANGER
+  
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  
+  deals        Deal[]
+}
+
+// 2. Buyer Model
+model Buyer {
+  id           String         @id @default(cuid())
+  name         String
+  contactInfo  String?
+  niche        String?        // Product Interest
+  status       String         @default("CONTACTED") // CONTACTED, QUALIFIED, REJECTED
+  
+  // Qualification & Tags
+  hasIntent    Boolean        @default(false)
+  hasBudget    Boolean        @default(false)
+  hasUrgency   Boolean        @default(false)
+  qualification String       @default("RISKY") // PASS, RISKY, FAIL
+  
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  
+  deals        Deal[]
+}
+
+// 3. Deal Model
+model Deal {
+  id            String       @id @default(cuid())
+  sellerId      String
+  buyerId       String
+  status        String       @default("TEST_SENT") // TEST_SENT, CONNECTED, CLOSED
+  notes         String?
+  outcome       String?
+  moneyCaptured Float        @default(0)
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  seller        Seller       @relation(fields: [sellerId], references: [id])
+  buyer         Buyer        @relation(fields: [buyerId], references: [id])
+  interactions  InteractionLog[]
+}
+
+// 4. InteractionLog Model
+model InteractionLog {
+  id          String       @id @default(cuid())
+  dealId      String?
+  category    String       // e.g., "buyer", "seller", "negotiation"
+  scenarioId  String?
+  notes       String?
+  isResolved  Boolean      @default(false) // Required for Post-Interaction Capture mandate
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  deal        Deal?        @relation(fields: [dealId], references: [id])
+  scenario    Scenario?    @relation(fields: [scenarioId], references: [id])
+  feedback    Feedback?
+}
+
+// 5. Scenario Model (For Deal Assistant)
+model Scenario {
+  id          String       @id @default(cuid())
+  key         String       @unique // e.g., "buyer_interested", "seller_asking_free_leads"
+  title       String
+  script      String
+  reasoning   String
+  nextAction  String
+  warnings    String?
+  variations  String?      // JSON string or newline separated variations
+  
+  interactions InteractionLog[]
+}
+
+// 6. Feedback Model (Fast Capture & Rule Library)
+model Feedback {
+  id              String         @id @default(cuid())
+  interactionId   String         @unique
+  
+  type            String         // Buyer, Seller, Pricing, Execution
+  outcome         String         // Success, Fail, Ghost
+  coreIssue       String         // Low intent, Price resistance, etc.
+  insight         String         // 1 sentence: "What actually caused the result"
+  ruleUpdate      String         // 1 sentence: "What I'll change going forward"
+  
+  createdAt       DateTime       @default(now())
+  
+  interaction     InteractionLog @relation(fields: [interactionId], references: [id])
+}

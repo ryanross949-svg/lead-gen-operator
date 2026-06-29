@@ -1,0 +1,45 @@
+// src/actions/deal.ts
+"use server"
+
+import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
+
+export async function createSeller(formData: FormData) {
+  const name = formData.get("name") as string;
+  const niche = formData.get("niche") as string;
+  const contactInfo = formData.get("contactInfo") as string;
+  const notes = formData.get("notes") as string;
+
+  if (!name) return;
+
+  await prisma.seller.create({
+    data: {
+      name,
+      niche,
+      contactInfo,
+      notes,
+      status: "PROSPECTED",
+    },
+  });
+  revalidatePath("/");
+}
+
+export async function createBuyer(formData: FormData) {
+  const name = formData.get("name") as string;
+  const niche = formData.get("niche") as string;
+  const contactInfo = formData.get("contactInfo") as string;
+  const notes = formData.get("notes") as string;
+
+  if (!name) return;
+
+  await prisma.buyer.create({
+    data: {
+      name,
+      niche,
+      contactInfo,
+      notes,
+      status: "CONTACTED",
+    },
+  });
+  revalidatePath("/");
+}
