@@ -55,7 +55,7 @@ export default function ExecutePage() {
         <div>
           <h1 className="text-2xl font-semibold flex items-center gap-2">
             <Rocket className="h-6 w-6" />
-            Daily Execution System
+            Daily System
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Don&apos;t think. Just execute the system.

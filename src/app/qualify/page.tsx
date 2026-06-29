@@ -37,7 +37,7 @@ export default function QualificationPage() {
       <div>
         <h1 className="text-2xl font-semibold flex items-center gap-2">
           <ClipboardCheck className="h-6 w-6" />
-          Qualification System
+          Qualification
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Adaptive, behavior-based logic. Maximize clean deals.

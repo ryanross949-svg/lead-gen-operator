@@ -40,7 +40,7 @@ export default async function FeedbackLogPage() {
       <div>
         <h1 className="text-2xl font-semibold flex items-center gap-2">
           <BarChart3 className="h-6 w-6" />
-          Feedback & Rule Engine
+          Feedback Log
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Capture conclusions in &lt; 60 seconds. Think externally, log the rule here.
