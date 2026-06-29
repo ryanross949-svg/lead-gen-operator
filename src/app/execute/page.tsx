@@ -5,10 +5,11 @@ import { useState, useEffect } from "react"
 import { useDailyStore } from "@/lib/daily-store"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Rocket, ListChecks, AlertCircle, Timer, RotateCcw, Flame, PlusCircle, StopCircle, ShieldAlert } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function ExecutePage() {
   const { tasks, toggleTask, metrics, incrementMetric, streak, completeDay, resetDay, violations, addViolation } = useDailyStore();
@@ -94,10 +95,8 @@ export default function ExecutePage() {
           {/* Session Mode Button */}
           {!isSessionActive ? (
             <Dialog>
-              <DialogTrigger asChild>
-                <Button size="lg" className="w-full bg-red-600 hover:bg-red-700 text-white">
-                  <Rocket className="h-5 w-5 mr-2" /> Start Focus Session
-                </Button>
+              <DialogTrigger className={cn(buttonVariants({ size: "lg" }), "w-full bg-red-600 hover:bg-red-700 text-white")}>
+                <Rocket className="h-5 w-5 mr-2" /> Start Focus Session
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -110,8 +109,8 @@ export default function ExecutePage() {
                   <p>3. Qualify and attempt connections.</p>
                 </div>
                 <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                  <DialogClose className={cn(buttonVariants({ variant: "outline" }))}>
+                    Cancel
                   </DialogClose>
                   <Button onClick={() => { setTimeLeft(30 * 60); setIsSessionActive(true); }}>Start Timer</Button>
                 </DialogFooter>
