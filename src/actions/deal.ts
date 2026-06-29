@@ -43,3 +43,33 @@ export async function createBuyer(formData: FormData) {
   });
   revalidatePath("/");
 }
+
+export async function updateSellerStatus(id: string, status: string) {
+  await prisma.seller.update({
+    where: { id },
+    data: { status },
+  });
+  revalidatePath("/");
+}
+
+export async function deleteSeller(id: string) {
+  await prisma.seller.delete({
+    where: { id },
+  });
+  revalidatePath("/");
+}
+
+export async function updateBuyerStatus(id: string, status: string) {
+  await prisma.buyer.update({
+    where: { id },
+    data: { status },
+  });
+  revalidatePath("/");
+}
+
+export async function deleteBuyer(id: string) {
+  await prisma.buyer.delete({
+    where: { id },
+  });
+  revalidatePath("/");
+}

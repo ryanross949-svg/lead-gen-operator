@@ -2,9 +2,8 @@
 import { prisma } from "@/lib/db";
 import { KanbanSquare, Zap, Link2, Brain, AlertTriangle } from "lucide-react";
 import { NewDealSheet } from "@/components/new-deal-sheet";
+import { EntityCardMenu } from "@/components/entity-card-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-export const dynamic = 'force-dynamic';
 
 // Simplified Pipeline Stages
 const pipelineColumns = [
@@ -21,11 +20,8 @@ export default async function Dashboard() {
   const feedbacks = await prisma.feedback.findMany({ orderBy: { createdAt: "desc" }, take: 5 });
 
   // --- ACTION QUEUE LOGIC ---
-  // 1. Sellers who are prospected but haven't been marked as having a real product yet (needs outreach/follow up)
   const sellerActions = sellers.filter(s => s.status === "PROSPECTED" && !s.hasRealProduct);
-  // 2. Buyers who have intent but no budget (needs 1 more question)
   const buyerActions = buyers.filter(b => b.hasIntent && !b.hasBudget);
-  // 3. Ready to connect (Buyer qualified + Seller active)
   const readyBuyers = buyers.filter(b => b.status === "QUALIFIED");
   const readySellers = sellers.filter(s => s.status === "ACTIVE");
   const readyToConnect = readyBuyers.length > 0 && readySellers.length > 0;
@@ -97,8 +93,9 @@ export default async function Dashboard() {
 
             if (col.sellerStatus) {
               cards = sellers.filter(s => s.status === col.sellerStatus).map(s => (
-                <div key={s.id} className="p-3 rounded-md bg-background border shadow-sm">
-                  <div className="flex justify-between items-start">
+                <div key={s.id} className="group relative p-3 rounded-md bg-background border shadow-sm">
+                  <EntityCardMenu id={s.id} type="seller" />
+                  <div className="flex justify-between items-start pr-6">
                     <p className="font-medium text-sm">{s.name}</p>
                     <span className={`text-xs px-1.5 py-0.5 rounded ${s.qualification === 'PASS' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{s.qualification}</span>
                   </div>
@@ -110,8 +107,9 @@ export default async function Dashboard() {
               ));
             } else if (col.buyerStatus) {
               cards = buyers.filter(b => b.status === col.buyerStatus).map(b => (
-                <div key={b.id} className="p-3 rounded-md bg-background border shadow-sm">
-                  <div className="flex justify-between items-start">
+                <div key={b.id} className="group relative p-3 rounded-md bg-background border shadow-sm">
+                  <EntityCardMenu id={b.id} type="buyer" />
+                  <div className="flex justify-between items-start pr-6">
                     <p className="font-medium text-sm">{b.name}</p>
                     <span className={`text-xs px-1.5 py-0.5 rounded ${b.qualification === 'PASS' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{b.qualification}</span>
                   </div>
